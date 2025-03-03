@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Stats Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #players { margin-top: 20px; }
+        .player { display: flex; justify-content: space-between; align-items: center; 
+                  border: 1px solid #ddd; padding: 10px; margin: 5px auto; width: 80%; }
+        button { margin: 0 5px; padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Indoor Football Stats Tracker</h2>
+
+    <input type="text" id="playerName" placeholder="Enter player name">
+    <button onclick="addPlayer()">Add Player</button>
+
+    <div id="players"></div>
+
+    <script>
+        let players = JSON.parse(localStorage.getItem("players")) || [];
+
+        function savePlayers() {
+            localStorage.setItem("players", JSON.stringify(players));
+        }
+
+        function addPlayer() {
+            const name = document.getElementById("playerName").value.trim();
+            if (name && !players.some(p => p.name === name)) {
+                players.push({ name, goals: 0, assists: 0, defense: 0 });
+                savePlayers();
+                renderPlayers();
+            }
+            document.getElementById("playerName").value = "";
+        }
+
+        function updateStat(name, stat) {
+            const player = players.find(p => p.name === name);
+            if (player) {
+                player[stat]++;
+                savePlayers();
+                renderPlayers();
+            }
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById("players");
+            container.innerHTML = "";
+            players.forEach(player => {
+                container.innerHTML += `
+                    <div class="player">
+                        <span>${player.name}</span>
+                        <span>Goals: ${player.goals} <button onclick="updateStat('${player.name}', 'goals')">+</button></span>
+                        <span>Assists: ${player.assists} <button onclick="updateStat('${player.name}', 'assists')">+</button></span>
+                        <span>Defense: ${player.defense} <button onclick="updateStat('${player.name}', 'defense')">+</button></span>
+                    </div>
+                `;
+            });
+        }
+
+        renderPlayers();
+    </script>
+
+</body>
+</html>
