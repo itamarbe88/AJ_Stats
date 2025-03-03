@@ -10,11 +10,15 @@
         .player { display: flex; justify-content: space-between; align-items: center; 
                   border: 1px solid #ddd; padding: 10px; margin: 5px auto; width: 80%; }
         button { margin: 0 5px; padding: 5px 10px; cursor: pointer; }
+        select { margin: 10px; padding: 5px; }
     </style>
 </head>
 <body>
 
     <h2>Indoor Football Stats Tracker</h2>
+
+    <label for="weekSelect">Select Week:</label>
+    <select id="weekSelect" onchange="changeWeek()"></select>
 
     <input type="text" id="playerName" placeholder="Enter player name">
     <button onclick="addPlayer()">Add Player</button>
@@ -22,48 +26,33 @@
     <div id="players"></div>
 
     <script>
-        let players = JSON.parse(localStorage.getItem("players")) || [];
+        let stats = JSON.parse(localStorage.getItem("stats")) || {};
+        let currentWeek = new Date().toISOString().slice(0, 10); // Default to today's date
 
-        function savePlayers() {
-            localStorage.setItem("players", JSON.stringify(players));
+        function saveStats() {
+            localStorage.setItem("stats", JSON.stringify(stats));
+        }
+
+        function changeWeek() {
+            currentWeek = document.getElementById("weekSelect").value;
+            renderPlayers();
         }
 
         function addPlayer() {
             const name = document.getElementById("playerName").value.trim();
-            if (name && !players.some(p => p.name === name)) {
-                players.push({ name, goals: 0, assists: 0, defense: 0 });
-                savePlayers();
+            if (!stats[currentWeek]) stats[currentWeek] = [];
+            if (name && !stats[currentWeek].some(p => p.name === name)) {
+                stats[currentWeek].push({ name, goals: 0, assists: 0, defense: 0 });
+                saveStats();
                 renderPlayers();
             }
             document.getElementById("playerName").value = "";
         }
 
         function updateStat(name, stat) {
-            const player = players.find(p => p.name === name);
+            const player = stats[currentWeek].find(p => p.name === name);
             if (player) {
                 player[stat]++;
-                savePlayers();
+                saveStats();
                 renderPlayers();
             }
-        }
-
-        function renderPlayers() {
-            const container = document.getElementById("players");
-            container.innerHTML = "";
-            players.forEach(player => {
-                container.innerHTML += `
-                    <div class="player">
-                        <span>${player.name}</span>
-                        <span>Goals: ${player.goals} <button onclick="updateStat('${player.name}', 'goals')">+</button></span>
-                        <span>Assists: ${player.assists} <button onclick="updateStat('${player.name}', 'assists')">+</button></span>
-                        <span>Defense: ${player.defense} <button onclick="updateStat('${player.name}', 'defense')">+</button></span>
-                    </div>
-                `;
-            });
-        }
-
-        renderPlayers();
-    </script>
-
-</body>
-</html>
