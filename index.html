@@ -5,27 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Football Stats Tracker</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #players { margin-top: 20px; }
-        .player { display: flex; justify-content: space-between; align-items: center; 
-                  border: 1px solid #ddd; padding: 10px; margin: 5px auto; width: 80%; }
-        button { margin: 0 5px; padding: 5px 10px; cursor: pointer; }
-        input[type="date"] { margin: 10px; padding: 5px; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f7fc; color: #333; }
+        h2 { color: #0057b7; }
+        .container { width: 90%; max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .player { display: flex; justify-content: space-between; align-items: center; background: #e3f2fd; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        button { border: none; padding: 8px 12px; margin: 0 5px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .plus { background: #ff9800; color: white; }
+        .minus { background: #0288d1; color: white; }
+        .summary-btn { background: #0057b7; color: white; width: 100%; margin-top: 10px; }
+        input, select { padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; width: 95%; }
     </style>
 </head>
 <body>
 
-    <h2>Indoor Football Stats Tracker</h2>
+    <div class="container">
+        <h2>Indoor Football Stats Tracker</h2>
 
-    <label for="weekPicker">Select Week:</label>
-    <input type="date" id="weekPicker" onchange="changeWeek()">
+        <label for="weekPicker"><strong>Select Week:</strong></label>
+        <input type="date" id="weekPicker" onchange="changeWeek()">
 
-    <input type="text" id="playerName" placeholder="Enter player name">
-    <button onclick="addPlayer()">Add Player</button>
+        <input type="text" id="playerName" placeholder="Enter player name">
+        <button class="plus" onclick="addPlayer()">Add Player</button>
 
-    <div id="players"></div>
+        <div id="players"></div>
 
-    <button onclick="window.location.href='summary.html'">View Summary</button>
+        <button class="summary-btn" onclick="window.location.href='summary.html'">View Summary</button>
+    </div>
 
     <script>
         let players = JSON.parse(localStorage.getItem("players")) || [];
@@ -72,18 +77,18 @@
 
                 container.innerHTML += `
                     <div class="player">
-                        <span>${name}</span>
+                        <span><strong>${name}</strong></span>
                         <span>Goals: ${playerStats.goals} 
-                            <button onclick="updateStat('${name}', 'goals', 1)">+</button>
-                            <button onclick="updateStat('${name}', 'goals', -1)">-</button>
+                            <button class="plus" onclick="updateStat('${name}', 'goals', 1)">+</button>
+                            <button class="minus" onclick="updateStat('${name}', 'goals', -1)">-</button>
                         </span>
                         <span>Assists: ${playerStats.assists} 
-                            <button onclick="updateStat('${name}', 'assists', 1)">+</button>
-                            <button onclick="updateStat('${name}', 'assists', -1)">-</button>
+                            <button class="plus" onclick="updateStat('${name}', 'assists', 1)">+</button>
+                            <button class="minus" onclick="updateStat('${name}', 'assists', -1)">-</button>
                         </span>
                         <span>Defense: ${playerStats.defense} 
-                            <button onclick="updateStat('${name}', 'defense', 1)">+</button>
-                            <button onclick="updateStat('${name}', 'defense', -1)">-</button>
+                            <button class="plus" onclick="updateStat('${name}', 'defense', 1)">+</button>
+                            <button class="minus" onclick="updateStat('${name}', 'defense', -1)">-</button>
                         </span>
                     </div>
                 `;
