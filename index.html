@@ -11,107 +11,81 @@
         h2 { color: #0057b7; }
         .container { width: 90%; max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
         .player { display: flex; justify-content: space-between; align-items: center; background: #e3f2fd; padding: 10px; margin: 5px 0; border-radius: 5px; }
-        button { border: none; padding: 8px 12px; margin: 0 5px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .plus { background: #ff9800; color: white; }
-        .minus { background: #0288d1; color: white; }
-        .summary-btn { background: #0057b7; color: white; width: 100%; margin-top: 10px; }
-        input, select { padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; width: 95%; }
+        .btn { margin: 5px; padding: 5px 10px; border: none; cursor: pointer; }
+        .plus { background: #0288d1; color: white; }
+        .minus { background: #d32f2f; color: white; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Indoor Football Stats Tracker</h2>
+        <h2>Football Stats Tracker</h2>
 
-        <label for="weekPicker"><strong>Select Date:</strong></label>
-        <input type="date" id="weekPicker" onchange="renderPlayers()">
-
+        <input type="date" id="weekPicker">
         <input type="text" id="playerName" placeholder="Enter player name">
-        <button class="plus" onclick="addPlayer()">Add Player</button>
+        <button onclick="addPlayer()">Add Player</button>
 
         <div id="players"></div>
 
-        <button class="summary-btn" onclick="window.location.href='summary.html'">Overall Summary</button>
-        <button class="summary-btn" onclick="window.location.href='daily_summary.html'">Daily Summary</button>
+        <button onclick="window.location.href='summary.html'">Overall Summary</button>
+        <button onclick="window.location.href='daily-summary.html?date=' + document.getElementById('weekPicker').value">Daily Summary</button>
     </div>
 
     <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBSmR68M_nNvbJwY4rCWpJw6B2AJrh6XwQ",
-  authDomain: "aj-stats-tracker.firebaseapp.com",
-  projectId: "aj-stats-tracker",
-  storageBucket: "aj-stats-tracker.firebasestorage.app",
-  messagingSenderId: "78394536850",
-  appId: "1:78394536850:web:0ee4edf615d97e7e11874b",
-  measurementId: "G-S2RT53LTXX"
-};
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let currentDate = new Date().toISOString().slice(0, 10);
-        document.getElementById("weekPicker").value = currentDate;
+        async function addPlayer() {
+            const name = document.getElementById("playerName").value.trim();
+            if (name === "") return alert("Please enter a player name.");
 
-    // Function to add a player to the Firestore
-    async function addPlayer() {
-        const name = document.getElementById("playerName").value.trim();
-        if (name === "") {
-            alert("Please enter a player name.");
-            return;
-        }
-
-        // Save the player in Firestore
-        try {
             await db.collection("players").doc(name).set({ name });
-            console.log(`${name} added successfully.`);
-            document.getElementById("playerName").value = "";  // Clear input field
-            renderPlayers();  // Refresh player list
-        } catch (error) {
-            console.error("Error adding player:", error);
+            document.getElementById("playerName").value = "";
+            renderPlayers();
         }
-    }
 
+        async function updateStat(player, stat, change) {
+            const date = document.getElementById("weekPicker").value;
+            if (!date) return alert("Please select a date.");
 
-        async function updateStat(name, stat, change) {
-            const playerRef = db.collection("stats").doc(`${currentDate}-${name}`);
+            const playerRef = db.collection("stats").doc(`${date}-${player}`);
             const doc = await playerRef.get();
+            let data = doc.exists ? doc.data() : { goals: 0, assists: 0, defense: 0, present: true };
 
-            let data = doc.exists ? doc.data() : { goals: 0, assists: 0, defense: 0, present: false };
-            data[stat] = Math.max(0, data[stat] + change);
-
+            data[stat] = (data[stat] || 0) + change;
             await playerRef.set(data);
             renderPlayers();
         }
 
-        async function togglePresence(name, checked) {
-            const playerRef = db.collection("stats").doc(`${currentDate}-${name}`);
-            const doc = await playerRef.get();
+        async function renderPlayers() {
+            const playersSnap = await db.collection("players").get();
+            const container = document.getElementById("players");
+            container.innerHTML = "";
 
-            let data = doc.exists ? doc.data() : { goals: 0, assists: 0, defense: 0 };
-            data.present = checked;
-
-            await playerRef.set(data);
+            playersSnap.forEach(doc => {
+                const player = doc.id;
+                container.innerHTML += `
+                    <div class="player">
+                        <span><strong>${player}</strong></span>
+                        <button class="minus" onclick="updateStat('${player}', 'goals', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'goals', 1)">+</button> Goals
+                        <button class="minus" onclick="updateStat('${player}', 'assists', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'assists', 1)">+</button> Assists
+                        <button class="minus" onclick="updateStat('${player}', 'defense', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'defense', 1)">+</button> Defense
+                    </div>
+                `;
+            });
         }
-
-       
-            async function renderPlayers() {
-        const playersSnap = await db.collection("players").get();
-        const players = playersSnap.docs.map(doc => doc.id);
-
-        let container = document.getElementById("players");
-        container.innerHTML = "";
-
-        for (const name of players) {
-            container.innerHTML += `
-                <div class="player">
-                    <span><strong>${name}</strong></span>
-                    <span>Stats: Pending...</span>
-                </div>
-            `;
-        }
-    }
-
-    // Initial player list render
 
         renderPlayers();
     </script>
