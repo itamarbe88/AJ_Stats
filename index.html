@@ -37,8 +37,9 @@ const firebaseConfig = {
   measurementId: "G-S2RT53LTXX"
 };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
         async function addPlayer() {
             const name = document.getElementById("playerName").value.trim();
