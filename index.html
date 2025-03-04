@@ -25,7 +25,7 @@
 
         // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
 const firebaseConfig = {
   apiKey: "AIzaSyBSmR68M_nNvbJwY4rCWpJw6B2AJrh6XwQ",
@@ -53,18 +53,24 @@ const firebaseConfig = {
     }
 
 
-        async function updateStat(player, stat, change) {
-            const date = document.getElementById("weekPicker").value;
-            if (!date) return alert("Please select a date.");
+async function updateStat(playerName, statType, change) {
+    const playerRef = doc(db, "players", playerName);
+    const playerSnap = await getDoc(playerRef);
 
-            const playerRef = db.collection("stats").doc(`${date}-${player}`);
-            const doc = await playerRef.get();
-            let data = doc.exists ? doc.data() : { goals: 0, assists: 0, defense: 0, present: true };
-
-            data[stat] = (data[stat] || 0) + change;
-            await playerRef.set(data);
-            renderPlayers();
-        }
+    if (playerSnap.exists()) {
+        // Update existing stat with increment
+        await updateDoc(playerRef, {
+            [statType]: increment(change)
+        });
+    } else {
+        // If player document doesn't exist, create it with default stats
+        await setDoc(playerRef, {
+            goals: 0,
+            assists: 0,
+            defense: 0,
+            [statType]: change // Apply initial change
+        });
+    }
 
        // Function to load players
     async function renderPlayers() {
