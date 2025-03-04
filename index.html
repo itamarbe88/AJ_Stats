@@ -52,14 +52,25 @@ const firebaseConfig = {
         let currentDate = new Date().toISOString().slice(0, 10);
         document.getElementById("weekPicker").value = currentDate;
 
-        async function addPlayer() {
-            const name = document.getElementById("playerName").value.trim();
-            if (!name) return;
-
-            await db.collection("players").doc(name).set({ name });
-            document.getElementById("playerName").value = "";
-            renderPlayers();
+    // Function to add a player to the Firestore
+    async function addPlayer() {
+        const name = document.getElementById("playerName").value.trim();
+        if (name === "") {
+            alert("Please enter a player name.");
+            return;
         }
+
+        // Save the player in Firestore
+        try {
+            await db.collection("players").doc(name).set({ name });
+            console.log(`${name} added successfully.`);
+            document.getElementById("playerName").value = "";  // Clear input field
+            renderPlayers();  // Refresh player list
+        } catch (error) {
+            console.error("Error adding player:", error);
+        }
+    }
+
 
         async function updateStat(name, stat, change) {
             const playerRef = db.collection("stats").doc(`${currentDate}-${name}`);
@@ -82,37 +93,25 @@ const firebaseConfig = {
             await playerRef.set(data);
         }
 
-        async function renderPlayers() {
-            const playersSnap = await db.collection("players").get();
-            const players = playersSnap.docs.map(doc => doc.id);
+       
+            async function renderPlayers() {
+        const playersSnap = await db.collection("players").get();
+        const players = playersSnap.docs.map(doc => doc.id);
 
-            let container = document.getElementById("players");
-            container.innerHTML = "";
+        let container = document.getElementById("players");
+        container.innerHTML = "";
 
-            for (const name of players) {
-                const statDoc = await db.collection("stats").doc(`${currentDate}-${name}`).get();
-                const stats = statDoc.exists ? statDoc.data() : { goals: 0, assists: 0, defense: 0, present: false };
-
-                container.innerHTML += `
-                    <div class="player">
-                        <span><strong>${name}</strong></span>
-                        <input type="checkbox" onchange="togglePresence('${name}', this.checked)" ${stats.present ? 'checked' : ''}> Present
-                        <span>Goals: ${stats.goals} 
-                            <button class="plus" onclick="updateStat('${name}', 'goals', 1)">+</button>
-                            <button class="minus" onclick="updateStat('${name}', 'goals', -1)">-</button>
-                        </span>
-                        <span>Assists: ${stats.assists} 
-                            <button class="plus" onclick="updateStat('${name}', 'assists', 1)">+</button>
-                            <button class="minus" onclick="updateStat('${name}', 'assists', -1)">-</button>
-                        </span>
-                        <span>Defense: ${stats.defense} 
-                            <button class="plus" onclick="updateStat('${name}', 'defense', 1)">+</button>
-                            <button class="minus" onclick="updateStat('${name}', 'defense', -1)">-</button>
-                        </span>
-                    </div>
-                `;
-            }
+        for (const name of players) {
+            container.innerHTML += `
+                <div class="player">
+                    <span><strong>${name}</strong></span>
+                    <span>Stats: Pending...</span>
+                </div>
+            `;
         }
+    }
+
+    // Initial player list render
 
         renderPlayers();
     </script>
