@@ -34,7 +34,8 @@ const firebaseConfig = {
         const date = new URLSearchParams(window.location.search).get('date');
 
         async function renderDailySummary() {
-            const playersSnap = await db.collection("players").get();
+            
+            const playersSnap = getDocs(collection(db, "players"));
             let container = document.getElementById("players");
             container.innerHTML = "";
 
