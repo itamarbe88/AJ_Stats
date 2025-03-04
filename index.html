@@ -45,7 +45,7 @@ async function addPlayer() {
     const name = document.getElementById("playerName").value.trim();
     if (name === "") return alert("Please enter a player name.");
 
-    await setDoc(doc(db, "players", name), { name, goals: 0, assists: 0, defense: 0 });
+    await setDoc(doc(db, "players", name), { name, goals: 0, assists: 0, defense: 0, date: null });
     document.getElementById("playerName").value = "";
     renderPlayers();
 }
