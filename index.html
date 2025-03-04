@@ -41,14 +41,17 @@ const firebaseConfig = {
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-        async function addPlayer() {
-            const name = document.getElementById("playerName").value.trim();
-            if (name === "") return alert("Please enter a player name.");
 
-            await db.collection("players").doc(name).set({ name });
-            document.getElementById("playerName").value = "";
-            renderPlayers();
-        }
+    // Function to add player
+    async function addPlayer() {
+        const name = document.getElementById("playerName").value.trim();
+        if (name === "") return alert("Please enter a player name.");
+
+        await setDoc(doc(db, "players", name), { name });
+        document.getElementById("playerName").value = "";
+        renderPlayers();
+    }
+
 
         async function updateStat(player, stat, change) {
             const date = document.getElementById("weekPicker").value;
@@ -63,25 +66,26 @@ const firebaseConfig = {
             renderPlayers();
         }
 
-        async function renderPlayers() {
-            const playersSnap = await db.collection("players").get();
-            const container = document.getElementById("players");
-            container.innerHTML = "";
+       // Function to load players
+    async function renderPlayers() {
+        const querySnapshot = await getDocs(collection(db, "players"));
+        const container = document.getElementById("players");
+        container.innerHTML = "";
 
-            playersSnap.forEach(doc => {
-                const player = doc.id;
-                container.innerHTML += `
-                    <div class="player">
-                        <span><strong>${player}</strong></span>
-                        <button class="minus" onclick="updateStat('${player}', 'goals', -1)">-</button>
-                        <button class="plus" onclick="updateStat('${player}', 'goals', 1)">+</button> Goals
-                        <button class="minus" onclick="updateStat('${player}', 'assists', -1)">-</button>
-                        <button class="plus" onclick="updateStat('${player}', 'assists', 1)">+</button> Assists
-                        <button class="minus" onclick="updateStat('${player}', 'defense', -1)">-</button>
-                        <button class="plus" onclick="updateStat('${player}', 'defense', 1)">+</button> Defense
-                    </div>
-                `;
-            });
+        querySnapshot.forEach(doc => {
+            const player = doc.id;
+            container.innerHTML += `
+                <div class="player">
+                    <span><strong>${player}</strong></span>
+                    <button class="minus" onclick="updateStat('${player}', 'goals', -1)">-</button>
+                    <button class="plus" onclick="updateStat('${player}', 'goals', 1)">+</button> Goals
+                    <button class="minus" onclick="updateStat('${player}', 'assists', -1)">-</button>
+                    <button class="plus" onclick="updateStat('${player}', 'assists', 1)">+</button> Assists
+                    <button class="minus" onclick="updateStat('${player}', 'defense', -1)">-</button>
+                    <button class="plus" onclick="updateStat('${player}', 'defense', 1)">+</button> Defense
+                </div>
+            `;
+        });
         }
 
         renderPlayers();
