@@ -52,24 +52,36 @@ async function addPlayer() {
 
 // Function to update stats
 async function updateStat(playerName, statType, change) {
-    const playerRef = doc(db, "players", playerName);
-    const playerSnap = await getDoc(playerRef);
-
-    if (playerSnap.exists()) {
-        await updateDoc(playerRef, {
-            [statType]: increment(change)
-        });
-    } else {
-        await setDoc(playerRef, {
-            goals: 0,
-            assists: 0,
-            defense: 0,
-            [statType]: change
-        });
+    const selectedDate = document.getElementById("datePicker").value;
+    if (!selectedDate) {
+        alert("Please select a date before updating stats.");
+        return;
     }
 
-    renderPlayers();
+    const playerRef = doc(db, "gameStats", `${playerName}_${selectedDate}`);
+    const playerDoc = await getDoc(playerRef);
+
+    let newData = {
+        playerName: playerName,
+        date: selectedDate,
+        goals: 0,
+        assists: 0,
+        defense: 0
+    };
+
+    if (playerDoc.exists()) {
+        newData = playerDoc.data();
+    }
+
+    // Update the correct stat type
+    newData[statType] = (newData[statType] || 0) + change;
+    if (newData[statType] < 0) newData[statType] = 0; // Prevent negative values
+
+    await setDoc(playerRef, newData);
 }
+
+// Attach to window for HTML buttons
+window.updateStat = updateStat;
 
 // Function to render players
 async function renderPlayers() {
