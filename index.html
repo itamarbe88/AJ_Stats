@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Stats Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f7fc; color: #333; }
+        h2 { color: #0057b7; }
+        .container { width: 90%; max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .player { display: flex; justify-content: space-between; align-items: center; background: #e3f2fd; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .btn { margin: 5px; padding: 5px 10px; border: none; cursor: pointer; }
+        .plus { background: #0288d1; color: white; }
+        .minus { background: #d32f2f; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Football Stats Tracker</h2>
+
+        <input type="date" id="weekPicker">
+        <input type="text" id="playerName" placeholder="Enter player name">
+        <button onclick="addPlayer()">Add Player</button>
+
+        <div id="players"></div>
+
+        <button onclick="window.location.href='summary.html'">Overall Summary</button>
+        <button onclick="window.location.href='daily-summary.html?date=' + document.getElementById('weekPicker').value">Daily Summary</button>
+    </div>
+
+    <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBSmR68M_nNvbJwY4rCWpJw6B2AJrh6XwQ",
+  authDomain: "aj-stats-tracker.firebaseapp.com",
+  projectId: "aj-stats-tracker",
+  storageBucket: "aj-stats-tracker.firebasestorage.app",
+  messagingSenderId: "78394536850",
+  appId: "1:78394536850:web:0ee4edf615d97e7e11874b",
+  measurementId: "G-S2RT53LTXX"
+};
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function addPlayer() {
+            const name = document.getElementById("playerName").value.trim();
+            if (name === "") return alert("Please enter a player name.");
+
+            await db.collection("players").doc(name).set({ name });
+            document.getElementById("playerName").value = "";
+            renderPlayers();
+        }
+
+        async function updateStat(player, stat, change) {
+            const date = document.getElementById("weekPicker").value;
+            if (!date) return alert("Please select a date.");
+
+            const playerRef = db.collection("stats").doc(`${date}-${player}`);
+            const doc = await playerRef.get();
+            let data = doc.exists ? doc.data() : { goals: 0, assists: 0, defense: 0, present: true };
+
+            data[stat] = (data[stat] || 0) + change;
+            await playerRef.set(data);
+            renderPlayers();
+        }
+
+        async function renderPlayers() {
+            const playersSnap = await db.collection("players").get();
+            const container = document.getElementById("players");
+            container.innerHTML = "";
+
+            playersSnap.forEach(doc => {
+                const player = doc.id;
+                container.innerHTML += `
+                    <div class="player">
+                        <span><strong>${player}</strong></span>
+                        <button class="minus" onclick="updateStat('${player}', 'goals', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'goals', 1)">+</button> Goals
+                        <button class="minus" onclick="updateStat('${player}', 'assists', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'assists', 1)">+</button> Assists
+                        <button class="minus" onclick="updateStat('${player}', 'defense', -1)">-</button>
+                        <button class="plus" onclick="updateStat('${player}', 'defense', 1)">+</button> Defense
+                    </div>
+                `;
+            });
+        }
+
+        renderPlayers();
+    </script>
+
+</body>
+</html>
