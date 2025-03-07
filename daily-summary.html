@@ -5,75 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Summary</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module" src="daily-summary.js"></script>
 </head>
 <body>
-
-    <h2>Daily Football Stats</h2>
+    <h1>Daily Summary</h1>
+    
+    <label for="datePicker">Select Date:</label>
+    <input type="date" id="datePicker" onchange="loadDailySummary()">
+    
+    <div id="summary"></div>
+    
     <button onclick="window.location.href='index.html'">Back</button>
-    <div id="players"></div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBSmR68M_nNvbJwY4rCWpJw6B2AJrh6XwQ",
-  authDomain: "aj-stats-tracker.firebaseapp.com",
-  projectId: "aj-stats-tracker",
-  storageBucket: "aj-stats-tracker.firebasestorage.app",
-  messagingSenderId: "78394536850",
-  appId: "1:78394536850:web:0ee4edf615d97e7e11874b",
-  measurementId: "G-S2RT53LTXX"
-};
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        async function fetchDailySummary() {
-            const selectedDate = document.getElementById("datePicker").value;
-            if (!selectedDate) {
-                alert("Please select a date.");
-                return;
-            }
-
-            const summaryContainer = document.getElementById("daily-summary");
-            summaryContainer.innerHTML = "<h3>Loading...</h3>";
-
-            const q = query(collection(db, "gameStats"), where("date", "==", selectedDate));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                summaryContainer.innerHTML = "<h3>No data available for this date.</h3>";
-                return;
-            }
-
-            let summaryHTML = `<h3>Daily Summary for ${selectedDate}</h3>`;
-            summaryHTML += `<table>
-                                <tr>
-                                    <th>Player</th>
-                                    <th>Goals</th>
-                                    <th>Assists</th>
-                                    <th>Defensive Actions</th>
-                                </tr>`;
-
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                summaryHTML += `<tr>
-                                    <td>${data.playerName}</td>
-                                    <td>${data.goals || 0}</td>
-                                    <td>${data.assists || 0}</td>
-                                    <td>${data.defense || 0}</td>
-                                </tr>`;
-            });
-
-            summaryHTML += "</table>";
-            summaryContainer.innerHTML = summaryHTML;
-        }
-
-        window.fetchDailySummary = fetchDailySummary;
-    </script>
-
 </body>
 </html>
