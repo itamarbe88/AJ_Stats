@@ -5,115 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Football Stats Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js"></script>
 </head>
 <body>
+    <h1>Football Stats Tracker</h1>
+    
+    <label for="datePicker">Select Date:</label>
+    <input type="date" id="datePicker">
+    
+    <h2>Players</h2>
+    <ul id="playerList"></ul>
+    
+    <input type="text" id="newPlayerName" placeholder="Enter player name">
+    <button onclick="addPlayer()">Add Player</button>
+    
+    <button onclick="window.location.href='daily-summary.html'">Daily Summary</button>
+    <button onclick="window.location.href='overall-summary.html'">Overall Summary</button>
+    
+    <script>
+        import { db } from "./firebase-config.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        async function addPlayer() {
+            const playerName = document.getElementById("newPlayerName").value.trim();
+            if (!playerName) return;
+            
+            const playerRef = doc(db, "players", playerName);
+            await setDoc(playerRef, { name: playerName }, { merge: true });
+            
+            document.getElementById("newPlayerName").value = "";
+            loadPlayers();
+        }
 
-    <div class="container">
-        <h2>Football Stats Tracker</h2>
-
-        <input type="date" id="weekPicker">
-        <input type="text" id="playerName" placeholder="Enter player name">
-        <button onclick="addPlayer()">Add Player</button>
-
-        <div id="players"></div>
-
-        <button onclick="window.location.href='summary.html'">Overall Summary</button>
-        <button onclick="window.location.href='daily-summary.html?date=' + document.getElementById('weekPicker').value">Daily Summary</button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBSmR68M_nNvbJwY4rCWpJw6B2AJrh6XwQ",
-  authDomain: "aj-stats-tracker.firebaseapp.com",
-  projectId: "aj-stats-tracker",
-  storageBucket: "aj-stats-tracker.firebasestorage.app",
-  messagingSenderId: "78394536850",
-  appId: "1:78394536850:web:0ee4edf615d97e7e11874b",
-  measurementId: "G-S2RT53LTXX"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Function to add a player
-async function addPlayer() {
-    const name = document.getElementById("playerName").value.trim();
-    if (name === "") return alert("Please enter a player name.");
-
-    await setDoc(doc(db, "players", name), { name, goals: 0, assists: 0, defense: 0, date: null });
-    document.getElementById("playerName").value = "";
-    renderPlayers();
-}
-
-// Function to update stats
-async function updateStat(playerName, statType, change) {
-    const selectedDate = document.getElementById("datePicker").value;
-    if (!selectedDate) {
-        alert("Please select a date before updating stats.");
-        return;
-    }
-
-    const playerRef = doc(db, "gameStats", `${playerName}_${selectedDate}`);
-    const playerDoc = await getDoc(playerRef);
-
-    let newData = {
-        playerName: playerName,
-        date: selectedDate,
-        goals: 0,
-        assists: 0,
-        defense: 0
-    };
-
-    if (playerDoc.exists()) {
-        newData = playerDoc.data();
-    }
-
-    // Update the correct stat type
-    newData[statType] = (newData[statType] || 0) + change;
-    if (newData[statType] < 0) newData[statType] = 0; // Prevent negative values
-
-    await setDoc(playerRef, newData);
-}
-
-// Attach to window for HTML buttons
-window.updateStat = updateStat;
-
-// Function to render players
-async function renderPlayers() {
-    const querySnapshot = await getDocs(collection(db, "players"));
-    const container = document.getElementById("players");
-    container.innerHTML = "";
-
-    querySnapshot.forEach(doc => {
-        const player = doc.id;
-        container.innerHTML += `
-            <div class="player">
-                <span><strong>${player}</strong></span>
-                <button class="minus" onclick="updateStat('${player}', 'goals', -1)">-</button>
-                <button class="plus" onclick="updateStat('${player}', 'goals', 1)">+</button> Goals
-                <button class="minus" onclick="updateStat('${player}', 'assists', -1)">-</button>
-                <button class="plus" onclick="updateStat('${player}', 'assists', 1)">+</button> Assists
-                <button class="minus" onclick="updateStat('${player}', 'defense', -1)">-</button>
-                <button class="plus" onclick="updateStat('${player}', 'defense', 1)">+</button> Defense
-            </div>
-        `;
-    });
-}
-
-// Attach functions to `window` so HTML can access them
-window.addPlayer = addPlayer;
-window.updateStat = updateStat;
-
-// Load players on page load
-window.onload = renderPlayers;
-
-
+        async function loadPlayers() {
+            const playerList = document.getElementById("playerList");
+            playerList.innerHTML = "";
+            
+            const playersRef = collection(db, "players");
+            const snapshot = await getDocs(playersRef);
+            snapshot.forEach(doc => {
+                const li = document.createElement("li");
+                li.textContent = doc.data().name;
+                playerList.appendChild(li);
+            });
+        }
+        
+        window.addPlayer = addPlayer;
+        window.onload = loadPlayers;
     </script>
-
 </body>
 </html>
