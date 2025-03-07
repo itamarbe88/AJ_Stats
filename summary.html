@@ -3,60 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summary</title>
-<link rel="stylesheet" href="styles.css">
+    <title>Overall Summary</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="overall-summary.js"></script>
 </head>
 <body>
-
-    <div class="container">
-        <h2>Summary of All Weeks</h2>
-
-        <div id="summary" class="summary-section"></div>
-
-        <button onclick="window.location.href='index.html'">Back to Tracker</button>
-    </div>
-
-    <script>
-        let stats = JSON.parse(localStorage.getItem("stats")) || {};
-
-        function calculateSummary() {
-            let summary = {};
-
-            Object.values(stats).forEach(weekData => {
-                Object.entries(weekData).forEach(([player, data]) => {
-                    if (!summary[player]) summary[player] = { goals: 0, assists: 0, defense: 0 };
-
-                    summary[player].goals += data.goals;
-                    summary[player].assists += data.assists;
-                    summary[player].defense += data.defense;
-                });
-            });
-
-            return summary;
-        }
-
-        function renderSummary() {
-            const summaryData = calculateSummary();
-            const container = document.getElementById("summary");
-
-            container.innerHTML = "<h3>Goal Scorers</h3>";
-            Object.entries(summaryData).forEach(([player, data]) => {
-                if (data.goals > 0) container.innerHTML += `<p>${player}: ${data.goals} goals</p>`;
-            });
-
-            container.innerHTML += "<h3>Assist Providers</h3>";
-            Object.entries(summaryData).forEach(([player, data]) => {
-                if (data.assists > 0) container.innerHTML += `<p>${player}: ${data.assists} assists</p>`;
-            });
-
-            container.innerHTML += "<h3>Defensive Actions</h3>";
-            Object.entries(summaryData).forEach(([player, data]) => {
-                if (data.defense > 0) container.innerHTML += `<p>${player}: ${data.defense} defensive actions</p>`;
-            });
-        }
-
-        renderSummary();
-    </script>
-
+    <h1>Overall Summary</h1>
+    
+    <div id="summary"></div>
+    
+    <button onclick="window.location.href='index.html'">Back</button>
 </body>
 </html>
